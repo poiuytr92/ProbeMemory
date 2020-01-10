@@ -1,7 +1,7 @@
 # ProbeMemory
 
 This project shows how to determine that a paged-out memory is valid, sometimes MmIsAddressValid is not reliable, 
-and we can try to lock which seems to be invalid.
+and we can try to lock memory which seems to be invalid.
 
 - - -
   
