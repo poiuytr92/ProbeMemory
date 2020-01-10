@@ -1,0 +1,11 @@
+TARGETNAME=ProbeMemory
+#TARGETPATH=$(BASEDIR)\lib
+TARGETPATH=obj
+TARGETTYPE=DRIVER
+
+INCLUDES=.\
+
+SOURCES=ProbeMemory.cpp \
+        public.cpp \
+        SysModule.cpp \
+
