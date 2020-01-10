@@ -7,7 +7,7 @@ and we can try to lock which seems to be invalid.
   
 ## Using Driver Verifier
 
-Let all memory in paged pool page out，just using Microsoft Kernel Tools named Driver Verifier, which locates in %windir%\System32\verifier.exe. then tick the option of [Force IRQL Checking](https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/force-irql-checking), finally we need raise Irql level before accessing paged-out memory.
+Let all memory in paged pool page out，just using Microsoft Kernel Tools named Driver Verifier, which locates in %windir%\System32\verifier.exe. then tick the option of [Force IRQL Checking](https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/force-irql-checking), finally we need to raise Irql level before accessing paged-out memory.
 
 ![](https://github.com/FaEryICE/ProbeMemory/blob/master/pngs/forceirqlchecking_verifier.png)
 
