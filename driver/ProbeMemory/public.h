@@ -78,9 +78,10 @@ typedef PLDR_DATA_TABLE_ENTRY64 PLDR_DATA_TABLE_ENTRY;
 #endif
 
 
-BOOLEAN MmIsAddressPagesValid(PVOID lpAddress, ULONG ulSize);
+BOOLEAN IsAddressPagesValid(PVOID lpAddress, ULONG ulSize);
 BOOLEAN TryToLockMemory(PVOID lpAddr, ULONG ulSize, KPROCESSOR_MODE Mode, PMDL* lpMDL);
 VOID    UnLockMemory(PMDL lpMDL);
+BOOLEAN IsMemoryValid(PVOID lpAddress, ULONG ulSize, KPROCESSOR_MODE Mode, PMDL* lpMDL);
 BOOLEAN IsUnicodeStringValid(PUNICODE_STRING uniString, KPROCESSOR_MODE Mode, PMDL* lpMDL);
 BOOLEAN IsUnicodeString32Valid(PUNICODE_STRING32 uniString, KPROCESSOR_MODE Mode, PMDL* lpMDL);
 

@@ -1,8 +1,9 @@
 #include "public.h"
 
 //--------------------------------------------------------------------------------------------------------------
-BOOLEAN MmIsAddressPagesValid(PVOID lpAddress, ULONG ulSize)
+BOOLEAN IsAddressPagesValid(PVOID lpAddress, ULONG ulSize)
 {
+    BOOLEAN   bResult     = TRUE;
     ULONG_PTR ulStartAddr = 0;
     ULONG_PTR ulEndAddr   = 0;
 
@@ -11,26 +12,32 @@ BOOLEAN MmIsAddressPagesValid(PVOID lpAddress, ULONG ulSize)
         return FALSE;
     }
 
-    ulStartAddr = ALIGN_UP(lpAddress, PAGE_SIZE);
+    ulStartAddr = (ULONG_PTR)ALIGN_UP_POINTER_BY(lpAddress, PAGE_SIZE);
     ulEndAddr   = (ULONG_PTR)lpAddress + ulSize;
 
-    for ( ; ulStartAddr < ulEndAddr ; ulStartAddr += PAGE_SIZE )
+    while (TRUE)
     {
+        if (ulStartAddr >= ulEndAddr)
+        {
+            break;
+        }
+
         if (!MmIsAddressValid((PVOID)ulStartAddr))
         {
-            return FALSE;
+            bResult = FALSE;
+            break;
         }
+
+        ulStartAddr += PAGE_SIZE;
     }
 
-    return TRUE;
+    return bResult;
 }
 //--------------------------------------------------------------------------------------------------------------
 BOOLEAN TryToLockMemory(PVOID lpAddr, ULONG ulSize, KPROCESSOR_MODE Mode, PMDL* lpMDL)
 {
     BOOLEAN bRet      = FALSE;
     PMDL    pAllocMDL = NULL;
-
-    KdPrint(("[%s] Get Called\r\n", __FUNCTION__));
 
     if (!lpAddr || !ulSize || !lpMDL)
     {
@@ -66,25 +73,24 @@ VOID UnLockMemory(PMDL lpMDL)
     }
 }
 //--------------------------------------------------------------------------------------------------------------
+BOOLEAN IsMemoryValid(PVOID lpAddress, ULONG ulSize, KPROCESSOR_MODE Mode, PMDL* lpMDL)
+{
+    if (!IsAddressPagesValid(lpAddress, ulSize))
+    {
+        return TryToLockMemory(lpAddress, ulSize, Mode, lpMDL);
+    }
+
+    return TRUE;
+}
+//--------------------------------------------------------------------------------------------------------------
 BOOLEAN IsUnicodeStringValid(PUNICODE_STRING uniString, KPROCESSOR_MODE Mode, PMDL* lpMDL)
 {
-    BOOLEAN bRet = FALSE;
-
     if (!uniString->Length || !uniString->Buffer)
     {
         return FALSE;
     }
 
-    if (!MmIsAddressPagesValid(uniString->Buffer, uniString->Length))
-    {
-        return TryToLockMemory(uniString->Buffer, uniString->Length, Mode, lpMDL);
-    }
-    else
-    {
-        bRet = TRUE;
-    }
-
-    return bRet;
+    return IsMemoryValid(uniString->Buffer, uniString->Length, Mode, lpMDL);
 }
 //--------------------------------------------------------------------------------------------------------------
 BOOLEAN IsUnicodeString32Valid(PUNICODE_STRING32 uniString, KPROCESSOR_MODE Mode, PMDL* lpMDL)
@@ -98,15 +104,6 @@ BOOLEAN IsUnicodeString32Valid(PUNICODE_STRING32 uniString, KPROCESSOR_MODE Mode
     }
 
     lpAddr = (PVOID)uniString->Buffer;
-    if (!MmIsAddressPagesValid(lpAddr, uniString->Length))
-    {
-        return TryToLockMemory(lpAddr, uniString->Length, Mode, lpMDL);
-    }
-    else
-    {
-        bRet = TRUE;
-    }
-
-    return bRet;
+    return IsMemoryValid(lpAddr, uniString->Length, Mode, lpMDL);
 }
 //--------------------------------------------------------------------------------------------------------------

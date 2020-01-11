@@ -11,7 +11,6 @@
 #include "SysModule.h"
 
 PDRIVER_OBJECT  g_MyDriverObject = NULL;
-
 //-----------------------------------------------------------------------------------------------------------------------
 VOID NTAPI EnumDriverCallBack(PDRIVER_INFO lpDriverInfo, PVOID lpContext)
 {

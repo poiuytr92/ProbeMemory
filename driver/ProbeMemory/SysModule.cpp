@@ -23,9 +23,15 @@ NTSTATUS EnumDriverByWalkDriverObjectLdr(PDRIVER_OBJECT pDriverObject, PFN_EnumD
     while (TRUE)
     {
         pLdrEntry   = CONTAINING_RECORD(pListEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks.Flink);
-        if (!MmIsAddressValid(pLdrEntry))
+        if (!IsMemoryValid(pLdrEntry, sizeof(LDR_DATA_TABLE_ENTRY), KernelMode, &lpMDL))
         {
             break;
+        }
+
+        if (lpMDL)
+        {
+            UnLockMemory(lpMDL);
+            lpMDL = NULL;
         }
 
 #ifdef _WIN64
@@ -41,6 +47,14 @@ NTSTATUS EnumDriverByWalkDriverObjectLdr(PDRIVER_OBJECT pDriverObject, PFN_EnumD
                 lpMDL = NULL;
             }
         }
+        else
+        {
+#ifdef _WIN64
+            KdPrint(("[%s] BaseDllName Length:%x MaxLength:%x Buffer:%I64x\r\n", __FUNCTION__, pLdrEntry->BaseDllName.Length, pLdrEntry->BaseDllName.MaximumLength, pLdrEntry->BaseDllName.Buffer));
+#else
+            KdPrint(("[%s] BaseDllName Length:%x MaxLength:%x Buffer:%x\r\n", __FUNCTION__, pLdrEntry->BaseDllName.Length, pLdrEntry->BaseDllName.MaximumLength, pLdrEntry->BaseDllName.Buffer));
+#endif
+        }
 
 #ifdef _WIN64
         if (IsUnicodeStringValid(&pLdrEntry->FullDllName, KernelMode, &lpMDL))
@@ -50,17 +64,19 @@ NTSTATUS EnumDriverByWalkDriverObjectLdr(PDRIVER_OBJECT pDriverObject, PFN_EnumD
         {
             if (lpMDL)
             {
-                KdPrint(("[%s] LockMemory FullDllName:%wZ\r\n", __FUNCTION__, &pLdrEntry->BaseDllName));
+                KdPrint(("[%s] LockMemory FullDllName:%wZ\r\n", __FUNCTION__, &pLdrEntry->FullDllName));
                 UnLockMemory(lpMDL);
                 lpMDL = NULL;
             }
         }
-
+        else
+        {
 #ifdef _WIN64
-        KdPrint(("[%s] Ldr DllBase:%I64x, SizeOfImage:%x\r\n", __FUNCTION__, pLdrEntry->DllBase, pLdrEntry->SizeOfImage));
+            KdPrint(("[%s] FullDllName Length:%x MaxLength:%x Buffer:%I64x\r\n", __FUNCTION__, pLdrEntry->FullDllName.Length, pLdrEntry->FullDllName.MaximumLength, pLdrEntry->FullDllName.Buffer));
 #else
-        KdPrint(("[%s] Ldr DllBase:%x, SizeOfImage:%x\r\n", __FUNCTION__, pLdrEntry->DllBase, pLdrEntry->SizeOfImage));
+            KdPrint(("[%s] FullDllName Length:%x MaxLength:%x Buffer:%x\r\n", __FUNCTION__, pLdrEntry->FullDllName.Length, pLdrEntry->FullDllName.MaximumLength, pLdrEntry->FullDllName.Buffer));
 #endif
+        }
 
         if (pListEntry == pListHeader)
         {
